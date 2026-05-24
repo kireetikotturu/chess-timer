@@ -2,560 +2,590 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Arena Clock Pro</title>
 
+<!-- Import Premium Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+
 <style>
-
-:root{
-  --bg:#050816;
-  --card:#0f172a;
-  --green:#10b981;
-  --red:#ef4444;
-  --blue:#6366f1;
-  --orange:#f59e0b;
-  --text:#f8fafc;
-  --muted:#94a3b8;
+:root {
+  /* Premium Dark Theme Colors */
+  --bg: #09090b;
+  --card: #18181b;
+  --border: #27272a;
+  --green: #10b981;
+  --green-dark: #064e3b;
+  --red: #ef4444;
+  --red-dark: #7f1d1d;
+  --text: #fafafa;
+  --muted: #a1a1aa;
 }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
-html,body{
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  font-family:Inter,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-/* =========================
-   COMMON
-========================= */
-
-button,
-input,
-select{
-  font-family:inherit;
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  touch-action: manipulation; /* Prevents double-tap zoom on mobile */
 }
 
 /* =========================
    SETTINGS SCREEN
 ========================= */
-
-#settings-screen{
-  width:100%;
-  height:100vh;
-  overflow-y:auto;
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
+#settings-screen {
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.title{
-  text-align:center;
-  font-size:2rem;
-  font-weight:800;
-  margin-top:10px;
+.settings-container {
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.subtitle{
-  text-align:center;
-  color:var(--muted);
-  margin-bottom:10px;
+.title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
-.card{
-  background:var(--card);
-  border-radius:22px;
-  padding:18px;
+.subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-top: 4px;
 }
 
-.form-group{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  margin-bottom:16px;
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
-.form-row{
-  display:flex;
-  gap:12px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
-.form-row .form-group{
-  flex:1;
+.form-row {
+  display: flex;
+  gap: 16px;
 }
 
-label{
-  font-size:.8rem;
-  color:var(--muted);
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.08em;
+.form-row .form-group {
+  flex: 1;
 }
 
-input,
-select{
-  width:100%;
-  background:#1e293b;
-  border:none;
-  color:#fff;
-  padding:16px;
-  border-radius:16px;
-  font-size:1rem;
+label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-.start-btn{
-  width:100%;
-  background:var(--green);
-  border:none;
-  color:#fff;
-  padding:18px;
-  border-radius:20px;
-  font-size:1.1rem;
-  font-weight:800;
-  margin-top:10px;
+input, select {
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 16px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+  border-color: var(--green);
+}
+
+.start-btn {
+  width: 100%;
+  background: var(--green);
+  border: none;
+  color: #fff;
+  padding: 18px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+.start-btn:active {
+  transform: scale(0.97);
+  background: #0ea5e9;
 }
 
 /* =========================
    TIMER SCREEN
 ========================= */
-
-#timer-screen{
-  display:none;
-  width:100%;
-  height:100vh;
-  position:relative;
+#timer-screen {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  background: #000;
 }
 
-#clocks-container{
-  width:100%;
-  height:100%;
-  display:grid;
-  gap:6px;
-  padding:6px;
+#clocks-container {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 8px;
+  padding: 8px;
 }
 
-.clock-face{
-  background:#111827;
-  border-radius:24px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  position:relative;
-  overflow:hidden;
+/* Dynamic Grid Layouts */
+.grid-2 { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+.grid-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.grid-3 #player1 { grid-column: span 2; } /* Top clock takes full width */
+.grid-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+/* The Container bounds for perfect scaling */
+.clock-face {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  container-type: size; /* Enables perfectly responsive fonts */
+  transition: background 0.2s, border-color 0.2s;
+  cursor: pointer;
 }
 
-.clock-face.active{
-  background:rgba(16,185,129,.15);
-  border:3px solid var(--green);
+/* Rotatable Inner Content */
+.clock-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: transform 0.3s ease;
 }
 
-.clock-face.flagged{
-  background:rgba(239,68,68,.15);
-  border:3px solid var(--red);
+/* Multi-Directional Rotation Classes */
+.rot-0   { transform: rotate(0deg); }
+.rot-90  { transform: rotate(90deg); }
+.rot-m90 { transform: rotate(-90deg); }
+.rot-180 { transform: rotate(180deg); }
+
+/* States */
+.clock-face.active {
+  background: var(--green-dark);
+  border-color: var(--green);
 }
 
-.player-label{
-  position:absolute;
-  top:18px;
-  font-size:.9rem;
-  font-weight:700;
-  color:var(--muted);
-  letter-spacing:.1em;
-  text-transform:uppercase;
+.clock-face.flagged {
+  background: var(--red-dark);
+  border-color: var(--red);
+  animation: pulse 1s infinite alternate;
 }
 
-.time-display{
-  font-size:clamp(4rem,18vw,10rem);
-  font-weight:900;
-  line-height:1;
+@keyframes pulse {
+  from { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.1); }
+  to { box-shadow: inset 0 0 60px rgba(239, 68, 68, 0.4); }
 }
 
-.delay-display{
-  margin-top:12px;
-  color:var(--orange);
-  font-weight:700;
+.player-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clock-face.active .player-label {
+  color: var(--green);
+}
+
+.time-display {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 700;
+  font-size: min(25cqmin, 30cqw, 35cqh); 
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+}
+
+/* Tap to Start message */
+.tap-to-start {
+  position: absolute;
+  bottom: 20%;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--green);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.clock-face.active.waiting .tap-to-start {
+  opacity: 1;
+  animation: fadePulse 1.5s infinite;
+}
+
+@keyframes fadePulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
 }
 
 /* =========================
-   GRID
+   CENTER FLOATING CONTROLS
 ========================= */
-
-.grid-2{
-  grid-template-columns:1fr;
-  grid-template-rows:1fr 1fr;
+.center-controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 12px;
+  z-index: 50;
+  background: rgba(24, 24, 27, 0.85);
+  padding: 10px 16px;
+  border-radius: 50px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
-.grid-3{
-  grid-template-columns:1fr;
-  grid-template-rows:1fr 1fr 1fr;
+.float-btn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s, transform 0.1s;
 }
 
-.grid-4{
-  grid-template-columns:1fr 1fr;
-  grid-template-rows:1fr 1fr;
-}
-
-/* =========================
-   FLOATING CONTROLS
-========================= */
-
-.floating-controls{
-  position:absolute;
-  top:16px;
-  right:16px;
-  display:flex;
-  gap:10px;
-  z-index:20;
-}
-
-.float-btn{
-  width:52px;
-  height:52px;
-  border:none;
-  border-radius:50%;
-  background:rgba(15,23,42,.85);
-  color:#fff;
-  font-size:1.2rem;
-  backdrop-filter:blur(10px);
-}
-
-/* =========================
-   MOBILE IMPROVEMENTS
-========================= */
-
-@media(max-width:480px){
-
-  .time-display{
-    font-size:clamp(3.5rem,20vw,7rem);
-  }
-
-  .clock-face{
-    border-radius:18px;
-  }
-
-  .player-label{
-    font-size:.75rem;
-  }
-
+.float-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 </style>
 </head>
-
 <body>
 
 <!-- =========================
      SETTINGS PAGE
 ========================= -->
-
 <div id="settings-screen">
+  <div class="settings-container">
+    <div>
+      <div class="title">Arena Clock</div>
+      <div class="subtitle">Premium Multiplayer Timer</div>
+    </div>
 
-<div>
-<div class="title">Arena Clock</div>
-<div class="subtitle">
-Modern Multiplayer Chess Timer
-</div>
-</div>
+    <div class="card">
+      <div class="form-group">
+        <label>Players</label>
+        <select id="player-count">
+          <option value="2">2 Players (Versus)</option>
+          <option value="3">3 Players (Triangle)</option>
+          <option value="4">4 Players (Cross)</option>
+        </select>
+      </div>
 
-<div class="card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Minutes</label>
+          <input type="number" id="base-min" value="5" min="0">
+        </div>
+        <div class="form-group">
+          <label>Seconds</label>
+          <input type="number" id="base-sec" value="0" min="0" max="59">
+        </div>
+      </div>
 
-<div class="form-group">
-<label>Players</label>
-<select id="player-count">
-<option value="2">2 Players</option>
-<option value="3">3 Players</option>
-<option value="4">4 Players</option>
-</select>
-</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Increment (Sec)</label>
+          <input type="number" id="extra-sec" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Method</label>
+          <select id="timing-method">
+            <option value="fischer">Fischer (Add)</option>
+            <option value="sudden">Sudden Death</option>
+          </select>
+        </div>
+      </div>
 
-<div class="form-row">
-
-<div class="form-group">
-<label>Minutes</label>
-<input type="number" id="base-min" value="5">
-</div>
-
-<div class="form-group">
-<label>Seconds</label>
-<input type="number" id="base-sec" value="0">
-</div>
-
-</div>
-
-<div class="form-group">
-<label>Increment</label>
-<input type="number" id="extra-sec" value="0">
-</div>
-
-<div class="form-group">
-<label>Method</label>
-<select id="timing-method">
-<option value="bronstein">Bronstein</option>
-<option value="fischer">Fischer</option>
-<option value="sudden">Sudden Death</option>
-</select>
-</div>
-
-<button class="start-btn" id="start-game">
-START GAME
-</button>
-
-</div>
-
+      <button class="start-btn" id="start-game">START BATTLE</button>
+    </div>
+  </div>
 </div>
 
 <!-- =========================
      TIMER PAGE
 ========================= -->
-
 <div id="timer-screen">
+  
+  <div class="center-controls" id="center-controls" style="display: none;">
+    <button class="float-btn" id="back-btn" title="Settings">⚙️</button>
+    <button class="float-btn" id="pause-btn" title="Pause/Play">⏸️</button>
+    <button class="float-btn" id="reset-btn" title="Reset">🔄</button>
+  </div>
 
-<div class="floating-controls">
-
-<button class="float-btn" id="back-btn">
-⚙
-</button>
-
-<button class="float-btn" id="reset-btn">
-↺
-</button>
-
-</div>
-
-<div id="clocks-container"></div>
-
+  <div id="clocks-container"></div>
 </div>
 
 <script>
+let playerCount = 2;
+let activePlayer = 1;
 
-let playerCount=2;
-let activePlayer=1;
-let isRunning=false;
-let intervalId=null;
+let isRunning = false;    // Tracks if a game session is currently open
+let hasStarted = false;   // Tracks if the first clock has been tapped to start the countdown
+let isPaused = false;     // Tracks manual pauses
 
-let playerTimes=[];
-let playerDead=[];
+let lastTime = 0;
+let animationFrameId = null;
 
-const settingsScreen=
-document.getElementById('settings-screen');
+let playerTimes = [];
+let playerDead = [];
 
-const timerScreen=
-document.getElementById('timer-screen');
+const settingsScreen = document.getElementById('settings-screen');
+const timerScreen = document.getElementById('timer-screen');
+const container = document.getElementById('clocks-container');
+const centerControls = document.getElementById('center-controls');
+const pauseBtn = document.getElementById('pause-btn');
 
-const container=
-document.getElementById('clocks-container');
-
-function formatTime(sec){
-
-if(sec<=0) return "00:00";
-
-const m=Math.floor(sec/60);
-const s=Math.ceil(sec%60);
-
-return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
+function formatTime(sec) {
+  if (sec <= 0) return "00:00.0";
+  
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  
+  if (sec < 15) {
+    const ms = Math.floor((sec % 1) * 10);
+    return `${String(s).padStart(2, '0')}.${ms}`;
+  }
+  
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function buildGrid(){
+function buildGrid() {
+  container.innerHTML = "";
+  playerCount = parseInt(document.getElementById('player-count').value);
+  
+  container.className = `grid-${playerCount}`;
 
-container.innerHTML="";
+  for (let i = 1; i <= playerCount; i++) {
+    const face = document.createElement('div');
+    face.className = 'clock-face';
+    face.id = `player${i}`;
 
-playerCount=parseInt(
-document.getElementById('player-count').value
-);
+    let rotClass = 'rot-0';
+    if (playerCount === 2) {
+      if (i === 1) rotClass = 'rot-180'; 
+      if (i === 2) rotClass = 'rot-0';   
+    } 
+    else if (playerCount === 3) {
+      if (i === 1) rotClass = 'rot-180'; 
+      if (i === 2) rotClass = 'rot-0';   
+      if (i === 3) rotClass = 'rot-0';   
+    } 
+    else if (playerCount === 4) {
+      if (i === 1) rotClass = 'rot-180'; 
+      if (i === 2) rotClass = 'rot-m90'; 
+      if (i === 3) rotClass = 'rot-90';  
+      if (i === 4) rotClass = 'rot-0';   
+    }
 
-container.className="";
+    face.innerHTML = `
+      <div class="clock-content ${rotClass}">
+        <div class="player-label">PLAYER ${i}</div>
+        <div class="time-display" id="time${i}">00:00</div>
+        <div class="tap-to-start">TAP TO START</div>
+      </div>
+    `;
 
-if(playerCount===2){
-container.classList.add('grid-2');
+    face.addEventListener('pointerdown', () => switchTurn(i));
+    container.appendChild(face);
+  }
 }
 
-if(playerCount===3){
-container.classList.add('grid-3');
+function initGame() {
+  buildGrid();
+  
+  const min = parseInt(document.getElementById('base-min').value) || 0;
+  const sec = parseInt(document.getElementById('base-sec').value) || 0;
+  const total = (min * 60) + sec;
+
+  playerTimes = [];
+  playerDead = [];
+  
+  // Reset all logical states
+  isRunning = true;
+  hasStarted = false;
+  isPaused = false;
+
+  for (let i = 1; i <= playerCount; i++) {
+    playerTimes[i] = total;
+    playerDead[i] = false;
+    document.getElementById(`time${i}`).textContent = formatTime(total);
+  }
+
+  activePlayer = 1;
+  document.getElementById(`player1`).classList.add('active');
+  document.getElementById(`player1`).classList.add('waiting'); // Shows "TAP TO START"
+  pauseBtn.textContent = '⏸️';
 }
 
-if(playerCount===4){
-container.classList.add('grid-4');
+function startGame() {
+  settingsScreen.style.display = 'none';
+  timerScreen.style.display = 'block';
+  centerControls.style.display = 'flex';
+  
+  initGame();
+  // We do NOT start the requestAnimationFrame loop here.
+  // It waits patiently for the first tap.
 }
 
-for(let i=1;i<=playerCount;i++){
+function gameLoop() {
+  if (!isRunning || isPaused || !hasStarted) return;
 
-const face=document.createElement('div');
+  const now = Date.now();
+  const delta = (now - lastTime) / 1000;
+  lastTime = now;
 
-face.className='clock-face';
-face.id=`player${i}`;
+  playerTimes[activePlayer] -= delta;
 
-face.innerHTML=`
-
-<div class="player-label">
-PLAYER ${i}
-</div>
-
-<div class="time-display"
-id="time${i}">
-00:00
-</div>
-
-<div class="delay-display"
-id="delay${i}">
-</div>
-
-`;
-
-face.addEventListener('click',()=>switchTurn(i));
-
-container.appendChild(face);
-
+  if (playerTimes[activePlayer] <= 0) {
+    playerTimes[activePlayer] = 0;
+    document.getElementById(`time${activePlayer}`).textContent = '00:00.0';
+    document.getElementById(`player${activePlayer}`).classList.add('flagged');
+    document.getElementById(`player${activePlayer}`).classList.remove('active');
+    
+    playerDead[activePlayer] = true;
+    
+    let aliveCount = 0;
+    for(let i=1; i<=playerCount; i++) if(!playerDead[i]) aliveCount++;
+    
+    if(aliveCount <= 1) {
+       isRunning = false;
+       return;
+    } else {
+       switchTurn(activePlayer, true); 
+    }
+  } else {
+    document.getElementById(`time${activePlayer}`).textContent = formatTime(playerTimes[activePlayer]);
+  }
+  
+  if (isRunning && !isPaused && hasStarted) {
+    animationFrameId = requestAnimationFrame(gameLoop);
+  }
 }
 
+function switchTurn(playerClicked, forced = false) {
+  if (!isRunning || (isPaused && hasStarted)) return; 
+  if (playerClicked !== activePlayer && !forced) return;
+
+  // FIRST TAP LOGIC
+  if (!hasStarted) {
+    hasStarted = true;
+    lastTime = Date.now();
+    document.getElementById(`player${activePlayer}`).classList.remove('waiting');
+    
+    // We start the timer loop now
+    animationFrameId = requestAnimationFrame(gameLoop);
+    // Notice we do NOT apply increment on the very first tap of the game
+  } 
+  // SUBSEQUENT TAPS LOGIC
+  else {
+    const extraSec = parseInt(document.getElementById('extra-sec').value) || 0;
+    const method = document.getElementById('timing-method').value;
+    
+    if (!forced && method === 'fischer' && extraSec > 0) {
+      playerTimes[activePlayer] += extraSec;
+      document.getElementById(`time${activePlayer}`).textContent = formatTime(playerTimes[activePlayer]);
+    }
+  }
+
+  // Visual turn switch
+  document.getElementById(`player${activePlayer}`).classList.remove('active');
+
+  let next = activePlayer;
+  do {
+    next = (next % playerCount) + 1;
+  } while (playerDead[next]);
+
+  activePlayer = next;
+  document.getElementById(`player${activePlayer}`).classList.add('active');
 }
 
-function initGame(){
+// Center Button Event Listeners
+document.getElementById('start-game').addEventListener('click', startGame);
 
-buildGrid();
-
-const min=parseInt(
-document.getElementById('base-min').value
-)||0;
-
-const sec=parseInt(
-document.getElementById('base-sec').value
-)||0;
-
-const total=(min*60)+sec;
-
-playerTimes=[];
-playerDead=[];
-
-for(let i=1;i<=playerCount;i++){
-
-playerTimes[i]=total;
-playerDead[i]=false;
-
-document.getElementById(
-`time${i}`
-).textContent=formatTime(total);
-
-}
-
-activePlayer=1;
-
-document.getElementById(
-'player1'
-).classList.add('active');
-
-}
-
-function startGame(){
-
-settingsScreen.style.display='none';
-
-timerScreen.style.display='block';
-
-initGame();
-
-isRunning=true;
-
-intervalId=setInterval(tick,100);
-
-}
-
-function tick(){
-
-if(!isRunning) return;
-
-playerTimes[activePlayer]-=.1;
-
-if(playerTimes[activePlayer]<=0){
-
-playerTimes[activePlayer]=0;
-
-document.getElementById(
-`time${activePlayer}`
-).textContent='00:00';
-
-document.getElementById(
-`player${activePlayer}`
-).classList.add('flagged');
-
-playerDead[activePlayer]=true;
-
-clearInterval(intervalId);
-
-return;
-
-}
-
-document.getElementById(
-`time${activePlayer}`
-).textContent=
-formatTime(playerTimes[activePlayer]);
-
-}
-
-function switchTurn(player){
-
-if(player!==activePlayer) return;
-
-document.getElementById(
-`player${activePlayer}`
-).classList.remove('active');
-
-let next=player;
-
-do{
-next=(next%playerCount)+1;
-}
-while(playerDead[next]);
-
-activePlayer=next;
-
-document.getElementById(
-`player${activePlayer}`
-).classList.add('active');
-
-}
-
-document.getElementById(
-'start-game'
-).addEventListener('click',startGame);
-
-document.getElementById(
-'back-btn'
-).addEventListener('click',()=>{
-
-clearInterval(intervalId);
-
-timerScreen.style.display='none';
-
-settingsScreen.style.display='flex';
-
+document.getElementById('back-btn').addEventListener('click', () => {
+  isRunning = false;
+  hasStarted = false;
+  cancelAnimationFrame(animationFrameId);
+  timerScreen.style.display = 'none';
+  settingsScreen.style.display = 'flex';
+  centerControls.style.display = 'none';
 });
 
-document.getElementById(
-'reset-btn'
-).addEventListener('click',()=>{
+document.getElementById('pause-btn').addEventListener('click', () => {
+  if (!hasStarted) return; // You can't pause a game that hasn't started yet
 
-clearInterval(intervalId);
-
-initGame();
-
-intervalId=setInterval(tick,100);
-
+  if (isPaused) {
+    isPaused = false;
+    lastTime = Date.now(); 
+    pauseBtn.textContent = '⏸️';
+    requestAnimationFrame(gameLoop);
+  } else {
+    isPaused = true;
+    pauseBtn.textContent = '▶️';
+  }
 });
 
+document.getElementById('reset-btn').addEventListener('click', () => {
+  cancelAnimationFrame(animationFrameId);
+  initGame();
+});
 </script>
 
 </body>
