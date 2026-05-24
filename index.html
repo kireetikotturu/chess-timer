@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Elite Multi-Player Arena Clock</title>
+  <style>
+    :root {
+      --bg-main: #060913;
+      --bg-card: #0d1322;
+      --bg-active: #10b981;
+      --bg-inactive: #1e293b;
+      --text-primary: #f8fafc;
+      --text-muted: #64748b;
+      --accent: #4f46e5;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Connection Interruption Safety Label */
+    #network-alert {
+      background: var(--danger);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+      letter-spacing: 0.05em;
+      z-index: 100;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+
+    /* Configuration Panel Controls */
+    #config-panel {
+      background: var(--bg-card);
+      padding: 16px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 100px;
+    }
+
+    label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    input, select {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    option {
+      background-color: #0d1322;
+      color: #f8fafc;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .checkbox-group {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      min-width: auto;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--bg-active);
+    }
+
+    #global-controls {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-start { background: var(--bg-active); color: #fff; }
+    .btn-start:hover { background: #059669; }
+    .btn-pause { background: var(--warning); color: #fff; display: none; }
+    .btn-pause:hover { background: #d97706; }
+    .btn-reset { background: rgba(255, 255, 255, 0.04); color: var(--text-primary); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .btn-reset:hover { background: rgba(255, 255, 255, 0.08); }
+
+    /* Flexible Grid Arena Container */
+    #clocks-container {
+      flex: 1;
+      display: grid;
+      gap: 12px;
+      padding: 12px;
+      position: relative;
+      height: 100%;
+    }
+
+    /* Player Control Panels */
+    .clock-face {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      border-radius: 16px;
+      background: var(--bg-inactive);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+
+    .clock-face::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      border: 3px solid transparent;
+      transition: border-color 0.2s;
+      pointer-events: none;
+    }
+
+    .clock-face.active {
+      background: rgba(16, 185, 129, 0.05);
+      box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.1);
+    }
+    .clock-face.active::after {
+      border-color: var(--bg-active);
+    }
+
+    .clock-face.disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+    }
+
+    .clock-face.flagged {
+      background: rgba(239, 68, 68, 0.15) !important;
+      animation: modernPulse 0.8s infinite alternate ease-in-out;
+    }
+    .clock-face.flagged::after {
+      border-color: var(--danger) !important;
+    }
+
+    @keyframes modernPulse {
+      from { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); }
+      to { box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.4); }
+    }
+
+    .time-display {
+      font-size: clamp(2.5rem, 9vw, 7rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    .delay-display {
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      color: var(--warning);
+      font-weight: 600;
+      height: 1.2rem;
+      margin-top: 4px;
+    }
+
+    .player-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      position: absolute;
+      top: 16px;
+    }
+    
+    .clock-face.active .player-label {
+      color: var(--bg-active);
+    }
+
+    #spacebar-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      pointer-events: none;
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      z-index: 5;
+    }
+
+    /* Dynamic Grid Layout Allocations via Engine Classes */
+    
+    /* -- 2 PLAYER ALTERNATIVES -- */
+    .grid-2-opposite { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .grid-2-opposite #player1-face { transform: rotate(180deg); }
+    
+    .grid-2-side { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+
+    /* -- 3 PLAYER STRATEGY GRID -- */
+    .grid-3-mix { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .grid-3-mix #player3-face { grid-column: span 2; }
+
+    /* -- 4 PLAYER ARENA MAP -- */
+    .grid-4-square { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+    /* Mobile Responsive Adaptation Rules */
+    @media (max-width: 768px) {
+      #config-panel { padding: 12px; gap: 6px; }
+      #global-controls { width: 100%; margin-top: 4px; }
+      .form-group { min-width: 80px; }
+      .grid-2-side { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+      #spacebar-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Interruption Banner Element -->
+  <div id="network-alert">INTERNET DISRUPTED - ARENA CLOCKS SAFETY FROZEN</div>
+
+  <!-- Configuration Bar -->
+  <div id="config-panel">
+    <div class="form-group">
+      <label for="player-count">Players</label>
+      <select id="player-count">
+        <option value="2" selected>2 Players</option>
+        <option value="3">3 Players</option>
+        <option value="4">4 Players</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="layout-wrapper">
+      <label for="player-layout">Orientation</label>
+      <select id="player-layout">
+        <option value="opposite" selected>Face to Face</option>
+        <option value="side">Side by Side</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="base-min">Minutes</label>
+      <input type="number" id="base-min" value="0" min="0" max="60">
+    </div>
+
+    <div class="form-group">
+      <label for="base-sec">Seconds</label>
+      <input type="number" id="base-sec" value="30" min="0" max="59">
+    </div>
+    
+    <div class="form-group">
+      <label for="extra-sec">Delay (sec)</label>
+      <input type="number" id="extra-sec" value="0" min="0" max="30">
+    </div>
+
+    <div class="form-group">
+      <label for="timing-method">Method</label>
+      <select id="timing-method">
+        <option value="bronstein">Bronstein</option>
+        <option value="sudden">Sudden Death</option>
+        <option value="fischer">Fischer</option>
+      </select>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <input type="checkbox" id="sound-toggle" checked>
+      <label for="sound-toggle">Audio</label>
+    </div>
+
+    <div id="global-controls">
+      <button class="btn btn-start" id="btn-start">Go!</button>
+      <button class="btn btn-pause" id="btn-pause">Pause</button>
+      <button class="btn btn-reset" id="btn-reset">Reset</button>
+    </div>
+  </div>
+
+  <!-- Chess Arena Grid -->
+  <div id="clocks-container">
+    <!-- Generated dynamically via Javascript Engine to protect nodes -->
+  </div>
+
+  <div id="spacebar-hint">Press SPACEBAR to cycle turns</div>
+
+  <script>
+    // Audio Synthesis Core Engine
+    let audioCtx = null;
+    function playSound(type) {
+      if (!document.getElementById('sound-toggle').checked) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+
+      if (type === 'switch') {
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+      } else if (type === 'warning30') {
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+      } else if (type === 'warning10') {
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.18);
+      } else if (type === 'gameover') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      }
+    }
+
+    // Dynamic State Values Map Arrays
+    let isRunning = false;
+    let activePlayer = null; 
+    let intervalId = null;
+    let playerCount = 2;
+
+    let playerTimes = []; // Holds arrays index matched
+    let turnStartTimes = [];
+    let warnings30 = [];
+    let warnings10 = [];
+    let playerEliminated = [];
+
+    const btnStart = document.getElementById('btn-start');
+    const btnPause = document.getElementById('btn-pause');
+    const btnReset = document.getElementById('btn-reset');
+    const container = document.getElementById('clocks-container');
+    const countSelector = document.getElementById('player-count');
+    const layoutSelector = document.getElementById('player-layout');
+    const layoutWrapper = document.getElementById('layout-wrapper');
+    const networkAlert = document.getElementById('network-alert');
+
+    function formatTime(totalSeconds) {
+      if (totalSeconds <= 0) return "00:00";
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = Math.ceil(totalSeconds % 60);
+      return `${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
+    }
+
+    // Renders the correct number of panels depending on your configuration setup
+    function rebuildPlayerGridUI() {
+      playerCount = parseInt(countSelector.value);
+      container.innerHTML = "";
+      
+      // Toggle orientation select layout visibility (only useful for 2 players)
+      layoutWrapper.style.display = playerCount === 2 ? "flex" : "none";
+
+      // Apply dynamic CSS structure shapes
+      if (playerCount === 2) {
+        container.className = layoutSelector.value === 'side' ? 'grid-2-side' : 'grid-2-opposite';
+      } else if (playerCount === 3) {
+        container.className = 'grid-3-mix';
+      } else {
+        container.className = 'grid-4-square';
+      }
+
+      // Generate HTML Nodes dynamically
+      for (let i = 1; i <= playerCount; i++) {
+        const face = document.createElement('div');
+        face.id = `player${i}-face`;
+        face.className = 'clock-face disabled';
+        face.innerHTML = `
+          <span class="player-label">Player ${i}</span>
+          <div class="time-display" id="p${i}-time">00:00</div>
+          <div class="delay-display" id="p${i}-delay"></div>
+        `;
+        face.addEventListener('click', () => switchTurn(i));
+        container.appendChild(face);
+      }
+    }
+
+    // Local Storage Session State Saves
+    function saveGameState() {
+      const state = {
+        playerTimes, activePlayer, isRunning, turnStartTimes,
+        warnings30, warnings10, playerEliminated, playerCount,
+        config: {
+          count: countSelector.value, layout: layoutSelector.value,
+          min: document.getElementById('base-min').value,
+          sec: document.getElementById('base-sec').value,
+          extra: document.getElementById('extra-sec').value,
+          method: document.getElementById('timing-method').value,
+          audio: document.getElementById('sound-toggle').checked
+        }
+      };
+      localStorage.setItem('multi_chess_clock_backup', JSON.stringify(state));
+    }
+
+    function loadGameState() {
+      const saved = localStorage.getItem('multi_chess_clock_backup');
+      if (!saved) return false;
+      try {
+        const state = JSON.parse(saved);
+        
+        countSelector.value = state.config.count;
+        layoutSelector.value = state.config.layout;
+        document.getElementById('base-min').value = state.config.min;
+        document.getElementById('base-sec').value = state.config.sec;
+        document.getElementById('extra-sec').value = state.config.extra;
+        document.getElementById('timing-method').value = state.config.method;
+        document.getElementById('sound-toggle').checked = state.config.audio;
+
+        rebuildPlayerGridUI();
+
+        playerTimes = state.playerTimes;
+        activePlayer = state.activePlayer;
+        turnStartTimes = state.turnStartTimes;
+        warnings30 = state.warnings30; warnings10 = state.warnings10;
+        playerEliminated = state.playerEliminated;
+        playerCount = state.playerCount;
+
+        for(let i = 1; i <= playerCount; i++) {
+          const face = document.getElementById(`player${i}-face`);
+          face.classList.remove('disabled', 'active', 'flagged');
+          document.getElementById(`p${i}-time`).textContent = formatTime(playerTimes[i]);
+          
+          if (playerEliminated[i]) face.classList.add('flagged');
+          else if (activePlayer === i) face.classList.add('active');
+        }
+
+        isRunning = false;
+        btnStart.style.display = "block"; btnPause.style.display = "none";
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function initClocks() {
+      const baseMin = parseInt(document.getElementById('base-min').value) || 0;
+      const baseSec = parseInt(document.getElementById('base-sec').value) || 0;
+      let totalTime = (baseMin * 60) + baseSec;
+      if (totalTime <= 0) totalTime = 30;
+
+      playerTimes = []; turnStartTimes = [];
+      warnings30 = []; warnings10 = []; playerEliminated = [];
+
+      rebuildPlayerGridUI();
+
+      for (let i = 1; i <= playerCount; i++) {
+        playerTimes[i] = totalTime;
+        turnStartTimes[i] = totalTime;
+        warnings30[i] = totalTime <= 30;
+        warnings10[i] = totalTime <= 10;
+        playerEliminated[i] = false;
+
+        document.getElementById(`p${i}-time`).textContent = formatTime(totalTime);
+        document.getElementById(`p${i}-delay`).textContent = "";
+      }
+      saveGameState();
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      btnStart.style.display = "none"; btnPause.style.display = "block";
+
+      for (let i = 1; i <= playerCount; i++) {
+        if (!playerEliminated[i]) document.getElementById(`player${i}-face`).classList.remove('disabled');
+      }
+
+      if (!activePlayer) {
+        activePlayer = 1;
+        document.getElementById('player1-face').classList.add('active');
+        turnStartTimes[activePlayer] = playerTimes[activePlayer];
+      }
+
+      const tick = 0.1;
+      intervalId = setInterval(() => {
+        const method = document.getElementById('timing-method').value;
+        const maxExtra = parseInt(document.getElementById('extra-sec').value) || 0;
+
+        playerTimes[activePlayer] -= tick;
+
+        if (playerTimes[activePlayer] <= 30 && !warnings30[activePlayer]) { playSound('warning30'); warnings30[activePlayer] = true; }
+        if (playerTimes[activePlayer] <= 10 && !warnings10[activePlayer]) { playSound('warning10'); warnings10[activePlayer] = true; }
+
+        if (playerTimes[activePlayer] <= 0) {
+          playerTimes[activePlayer] = 0;
+          document.getElementById(`p${activePlayer}-time`).textContent = formatTime(0);
+          flagFall(activePlayer);
+          return;
+        }
+
+        document.getElementById(`p${activePlayer}-time`).textContent = formatTime(playerTimes[activePlayer]);
+
+        if (method === 'bronstein' && maxExtra > 0) {
+          const spent = turnStartTimes[activePlayer] - playerTimes[activePlayer];
+          document.getElementById(`p${activePlayer}-delay`).textContent = spent < maxExtra ? `Delay: ${Math.ceil(maxExtra - spent)}s` : "";
+        }
+        saveGameState();
+      }, 100);
+    }
+
+    function pauseTimer() {
+      if (!isRunning) return;
+      isRunning = false;
+      clearInterval(intervalId);
+      btnStart.style.display = "block"; btnPause.style.display = "none";
+      saveGameState();
+    }
+
+    function switchTurn(fromPlayer) {
+      if (!isRunning || activePlayer !== fromPlayer || playerEliminated[fromPlayer]) return;
+      
+      const method = document.getElementById('timing-method').value;
+      const extraSec = parseInt(document.getElementById('extra-sec').value) || 0;
+      playSound('switch');
+
+      // Apply increments / delay mechanics values maps
+      if (method === 'bronstein') playerTimes[fromPlayer] += Math.min(turnStartTimes[fromPlayer] - playerTimes[fromPlayer], extraSec);
+      else if (method === 'fischer') playerTimes[fromPlayer] += extraSec;
+
+      document.getElementById(`p${fromPlayer}-time`).textContent = formatTime(playerTimes[fromPlayer]);
+      document.getElementById(`p${fromPlayer}-delay`).textContent = "";
+      document.getElementById(`player${fromPlayer}-face`).classList.remove('active');
+
+      // Loop dynamically to find next living player sequence
+      let nextPlayer = fromPlayer;
+      let loops = 0;
+      do {
+        nextPlayer = (nextPlayer % playerCount) + 1;
+        loops++;
+      } while (playerEliminated[nextPlayer] && loops < playerCount);
+
+      // If everyone else is dead, current player won
+      if (playerEliminated[nextPlayer]) {
+        pauseTimer();
+        return;
+      }
+
+      activePlayer = nextPlayer;
+      document.getElementById(`player${activePlayer}-face`).classList.add('active');
+      turnStartTimes[activePlayer] = playerTimes[activePlayer];
+      saveGameState();
+    }
+
+    function flagFall(player) {
+      playSound('gameover');
+      playerEliminated[player] = true;
+      document.getElementById(`player${player}-face`).classList.remove('active');
+      document.getElementById(`player${player}-face`).classList.add('flagged');
+
+      // Look for survivors remaining
+      let activeSurvivors = 0;
+      let lastSurvivorIndex = 0;
+      for (let i = 1; i <= playerCount; i++) {
+        if (!playerEliminated[i]) { activeSurvivors++; lastSurvivorIndex = i; }
+      }
+
+      clearInterval(intervalId);
+      isRunning = false;
+
+      if (activeSurvivors > 1) {
+        // Automatic sequence fallback passes to next person alive
+        activePlayer = lastSurvivorIndex; 
+        isRunning = true;
+        let nextPlayer = player;
+        do { nextPlayer = (nextPlayer % playerCount) + 1; } while (playerEliminated[nextPlayer]);
+        activePlayer = nextPlayer;
+        document.getElementById(`player${activePlayer}-face`).classList.add('active');
+        turnStartTimes[activePlayer] = playerTimes[activePlayer];
+        startTimer();
+      } else {
+        // Complete Game Over Condition Met
+        activePlayer = null;
+        btnStart.style.display = "block"; btnPause.style.display = "none";
+        localStorage.removeItem('multi_chess_clock_backup');
+      }
+    }
+
+    // Event Wire Mappings
+    window.addEventListener('offline', () => { if (isRunning) { pauseTimer(); networkAlert.style.display = "block"; } });
+    window.addEventListener('online', () => { networkAlert.style.display = "none"; });
+
+    btnStart.addEventListener('click', () => {
+      if (container.children.length === 0 || (!isRunning && !activePlayer && playerTimes.length === 0)) initClocks();
+      startTimer();
+    });
+    btnPause.addEventListener('click', pauseTimer);
+    btnReset.addEventListener('click', () => {
+      pauseTimer(); activePlayer = null; initClocks();
+      btnStart.style.display = "block"; btnPause.style.display = "none";
+      localStorage.removeItem('multi_chess_clock_backup');
+    });
+
+    countSelector.addEventListener('change', () => { if (!isRunning && !activePlayer) initClocks(); });
+    layoutSelector.addEventListener('change', () => { if (!isRunning && !activePlayer) initClocks(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault(); 
+        if (isRunning && activePlayer) switchTurn(activePlayer);
+      }
+    });
+
+    document.getElementById('base-min').addEventListener('change', () => { if(!isRunning && !activePlayer) initClocks(); });
+    document.getElementById('base-sec').addEventListener('change', () => { if(!isRunning && !activePlayer) initClocks(); });
+
+    // Initial Execution Loading Pass
+    if (!loadGameState()) {
+      initClocks();
+    }
+  </script>
+</body>
+</html>
