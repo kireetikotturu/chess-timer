@@ -5,370 +5,250 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Elite Multi-Player Arena Clock</title>
+<title>Arena Clock Pro</title>
 
 <style>
 
 :root{
-  --bg-main:#060913;
-  --bg-card:#0d1322;
-  --bg-active:#10b981;
-  --bg-inactive:#1e293b;
-  --text-primary:#f8fafc;
-  --text-muted:#64748b;
-  --accent:#4f46e5;
-  --danger:#ef4444;
-  --warning:#f59e0b;
+  --bg:#050816;
+  --card:#0f172a;
+  --green:#10b981;
+  --red:#ef4444;
+  --blue:#6366f1;
+  --orange:#f59e0b;
+  --text:#f8fafc;
+  --muted:#94a3b8;
 }
 
 *{
-  box-sizing:border-box;
   margin:0;
   padding:0;
-  user-select:none;
-  -webkit-user-select:none;
+  box-sizing:border-box;
   -webkit-tap-highlight-color:transparent;
 }
 
-html,
-body{
+html,body{
   width:100%;
-  min-height:100vh;
-  overflow-x:hidden;
-  background:var(--bg-main);
-  color:var(--text-primary);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  height:100%;
+  overflow:hidden;
+  font-family:Inter,sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
 /* =========================
-   BODY
+   COMMON
 ========================= */
 
-body{
+button,
+input,
+select{
+  font-family:inherit;
+}
+
+/* =========================
+   SETTINGS SCREEN
+========================= */
+
+#settings-screen{
+  width:100%;
+  height:100vh;
+  overflow-y:auto;
+  padding:20px;
   display:flex;
   flex-direction:column;
+  gap:18px;
 }
 
-/* =========================
-   NETWORK ALERT
-========================= */
-
-#network-alert{
-  background:var(--danger);
-  color:#fff;
+.title{
   text-align:center;
-  padding:10px;
-  font-size:.85rem;
-  font-weight:700;
-  display:none;
-  z-index:100;
+  font-size:2rem;
+  font-weight:800;
+  margin-top:10px;
 }
 
-/* =========================
-   CONFIG PANEL
-========================= */
+.subtitle{
+  text-align:center;
+  color:var(--muted);
+  margin-bottom:10px;
+}
 
-#config-panel{
-  background:var(--bg-card);
-  padding:16px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-  align-items:flex-end;
-  border-bottom:1px solid rgba(255,255,255,.05);
+.card{
+  background:var(--card);
+  border-radius:22px;
+  padding:18px;
 }
 
 .form-group{
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:8px;
+  margin-bottom:16px;
+}
+
+.form-row{
+  display:flex;
+  gap:12px;
+}
+
+.form-row .form-group{
   flex:1;
-  min-width:120px;
 }
 
 label{
-  font-size:.65rem;
+  font-size:.8rem;
+  color:var(--muted);
+  font-weight:700;
   text-transform:uppercase;
   letter-spacing:.08em;
-  color:var(--text-muted);
-  font-weight:700;
 }
 
 input,
 select{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.08);
-  color:#fff;
-  padding:12px;
-  border-radius:10px;
-  font-size:.9rem;
-  outline:none;
-}
-
-option{
-  background:#0d1322;
-}
-
-input:focus,
-select:focus{
-  border-color:var(--accent);
-}
-
-.checkbox-group{
-  flex-direction:row;
-  align-items:center;
-  gap:8px;
-  min-width:auto;
-}
-
-input[type="checkbox"]{
-  width:18px;
-  height:18px;
-  accent-color:var(--bg-active);
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-#global-controls{
-  display:flex;
-  gap:10px;
-  margin-left:auto;
-}
-
-.btn{
-  padding:12px 20px;
+  width:100%;
+  background:#1e293b;
   border:none;
-  border-radius:10px;
-  font-size:.9rem;
-  font-weight:700;
-  cursor:pointer;
-  transition:.2s;
+  color:#fff;
+  padding:16px;
+  border-radius:16px;
+  font-size:1rem;
 }
 
-.btn-start{
-  background:var(--bg-active);
+.start-btn{
+  width:100%;
+  background:var(--green);
+  border:none;
   color:#fff;
-}
-
-.btn-pause{
-  background:var(--warning);
-  color:#fff;
-  display:none;
-}
-
-.btn-reset{
-  background:rgba(255,255,255,.05);
-  color:#fff;
+  padding:18px;
+  border-radius:20px;
+  font-size:1.1rem;
+  font-weight:800;
+  margin-top:10px;
 }
 
 /* =========================
-   CLOCK GRID
+   TIMER SCREEN
 ========================= */
+
+#timer-screen{
+  display:none;
+  width:100%;
+  height:100vh;
+  position:relative;
+}
 
 #clocks-container{
-  flex:1;
-  display:grid;
-  gap:12px;
-  padding:12px;
   width:100%;
+  height:100%;
+  display:grid;
+  gap:6px;
+  padding:6px;
 }
 
-/* =========================
-   CLOCK FACE
-========================= */
-
 .clock-face{
-  background:var(--bg-inactive);
-  border-radius:18px;
+  background:#111827;
+  border-radius:24px;
   display:flex;
-  flex-direction:column;
   justify-content:center;
   align-items:center;
+  flex-direction:column;
   position:relative;
-  cursor:pointer;
   overflow:hidden;
-  min-height:180px;
-  transition:.2s;
 }
 
 .clock-face.active{
-  background:rgba(16,185,129,.1);
-  border:3px solid var(--bg-active);
+  background:rgba(16,185,129,.15);
+  border:3px solid var(--green);
 }
 
 .clock-face.flagged{
-  background:rgba(239,68,68,.2);
-  border:3px solid var(--danger);
+  background:rgba(239,68,68,.15);
+  border:3px solid var(--red);
 }
-
-.clock-face.disabled{
-  opacity:.3;
-}
-
-/* =========================
-   TEXT
-========================= */
 
 .player-label{
   position:absolute;
-  top:16px;
-  font-size:.8rem;
-  text-transform:uppercase;
-  color:var(--text-muted);
+  top:18px;
+  font-size:.9rem;
   font-weight:700;
+  color:var(--muted);
   letter-spacing:.1em;
+  text-transform:uppercase;
 }
 
 .time-display{
-  font-size:clamp(2.5rem,8vw,6rem);
-  font-weight:800;
+  font-size:clamp(4rem,18vw,10rem);
+  font-weight:900;
   line-height:1;
-  text-align:center;
 }
 
 .delay-display{
-  margin-top:8px;
-  color:var(--warning);
-  font-size:1rem;
+  margin-top:12px;
+  color:var(--orange);
   font-weight:700;
 }
 
 /* =========================
-   GRID LAYOUTS
+   GRID
 ========================= */
 
-.grid-2-opposite{
+.grid-2{
   grid-template-columns:1fr;
   grid-template-rows:1fr 1fr;
 }
 
-.grid-2-opposite #player1-face{
-  transform:rotate(180deg);
+.grid-3{
+  grid-template-columns:1fr;
+  grid-template-rows:1fr 1fr 1fr;
 }
 
-.grid-2-side{
-  grid-template-columns:1fr 1fr;
-}
-
-.grid-3-mix{
-  grid-template-columns:1fr 1fr;
-  grid-template-rows:1fr 1fr;
-}
-
-.grid-3-mix #player3-face{
-  grid-column:span 2;
-}
-
-.grid-4-square{
+.grid-4{
   grid-template-columns:1fr 1fr;
   grid-template-rows:1fr 1fr;
 }
 
 /* =========================
-   SPACEBAR HINT
+   FLOATING CONTROLS
 ========================= */
 
-#spacebar-hint{
-  text-align:center;
-  padding:10px;
-  color:var(--text-muted);
-  font-size:.8rem;
+.floating-controls{
+  position:absolute;
+  top:16px;
+  right:16px;
+  display:flex;
+  gap:10px;
+  z-index:20;
+}
+
+.float-btn{
+  width:52px;
+  height:52px;
+  border:none;
+  border-radius:50%;
+  background:rgba(15,23,42,.85);
+  color:#fff;
+  font-size:1.2rem;
+  backdrop-filter:blur(10px);
 }
 
 /* =========================
-   MOBILE FIXES
+   MOBILE IMPROVEMENTS
 ========================= */
-
-@media(max-width:768px){
-
-  #config-panel{
-    flex-direction:column;
-    align-items:stretch;
-    gap:10px;
-    padding:12px;
-  }
-
-  .form-group{
-    width:100%;
-    min-width:100%;
-  }
-
-  input,
-  select{
-    width:100%;
-    font-size:16px;
-  }
-
-  #global-controls{
-    width:100%;
-    margin:0;
-  }
-
-  .btn{
-    flex:1;
-    width:100%;
-  }
-
-  #clocks-container{
-    gap:8px;
-    padding:8px;
-  }
-
-  .grid-2-side,
-  .grid-2-opposite{
-    grid-template-columns:1fr;
-    grid-template-rows:1fr 1fr;
-  }
-
-  .grid-3-mix{
-    grid-template-columns:1fr;
-    grid-template-rows:repeat(3,1fr);
-  }
-
-  .grid-3-mix #player3-face{
-    grid-column:auto;
-  }
-
-  .grid-4-square{
-    grid-template-columns:1fr;
-    grid-template-rows:repeat(4,1fr);
-  }
-
-  .clock-face{
-    min-height:120px;
-    padding:10px;
-  }
-
-  .time-display{
-    font-size:clamp(2rem,12vw,4rem);
-  }
-
-  .player-label{
-    position:static;
-    margin-bottom:10px;
-  }
-
-  #spacebar-hint{
-    display:none;
-  }
-}
 
 @media(max-width:480px){
 
-  .clock-face{
-    min-height:100px;
-  }
-
   .time-display{
-    font-size:clamp(1.8rem,14vw,3rem);
+    font-size:clamp(3.5rem,20vw,7rem);
   }
 
-  .btn{
-    padding:10px;
-    font-size:.8rem;
+  .clock-face{
+    border-radius:18px;
   }
+
+  .player-label{
+    font-size:.75rem;
+  }
+
 }
 
 </style>
@@ -376,11 +256,20 @@ input[type="checkbox"]{
 
 <body>
 
-<div id="network-alert">
-INTERNET DISRUPTED - CLOCK PAUSED
+<!-- =========================
+     SETTINGS PAGE
+========================= -->
+
+<div id="settings-screen">
+
+<div>
+<div class="title">Arena Clock</div>
+<div class="subtitle">
+Modern Multiplayer Chess Timer
+</div>
 </div>
 
-<div id="config-panel">
+<div class="card">
 
 <div class="form-group">
 <label>Players</label>
@@ -391,26 +280,22 @@ INTERNET DISRUPTED - CLOCK PAUSED
 </select>
 </div>
 
-<div class="form-group" id="layout-wrapper">
-<label>Orientation</label>
-<select id="player-layout">
-<option value="opposite">Face to Face</option>
-<option value="side">Side by Side</option>
-</select>
-</div>
+<div class="form-row">
 
 <div class="form-group">
 <label>Minutes</label>
-<input type="number" id="base-min" value="0">
+<input type="number" id="base-min" value="5">
 </div>
 
 <div class="form-group">
 <label>Seconds</label>
-<input type="number" id="base-sec" value="30">
+<input type="number" id="base-sec" value="0">
+</div>
+
 </div>
 
 <div class="form-group">
-<label>Delay</label>
+<label>Increment</label>
 <input type="number" id="extra-sec" value="0">
 </div>
 
@@ -418,88 +303,59 @@ INTERNET DISRUPTED - CLOCK PAUSED
 <label>Method</label>
 <select id="timing-method">
 <option value="bronstein">Bronstein</option>
-<option value="sudden">Sudden Death</option>
 <option value="fischer">Fischer</option>
+<option value="sudden">Sudden Death</option>
 </select>
 </div>
 
-<div class="form-group checkbox-group">
-<input type="checkbox" id="sound-toggle" checked>
-<label for="sound-toggle">Audio</label>
+<button class="start-btn" id="start-game">
+START GAME
+</button>
+
 </div>
 
-<div id="global-controls">
-<button class="btn btn-start" id="btn-start">Go!</button>
-<button class="btn btn-pause" id="btn-pause">Pause</button>
-<button class="btn btn-reset" id="btn-reset">Reset</button>
 </div>
+
+<!-- =========================
+     TIMER PAGE
+========================= -->
+
+<div id="timer-screen">
+
+<div class="floating-controls">
+
+<button class="float-btn" id="back-btn">
+⚙
+</button>
+
+<button class="float-btn" id="reset-btn">
+↺
+</button>
 
 </div>
 
 <div id="clocks-container"></div>
 
-<div id="spacebar-hint">
-Press SPACEBAR to switch turns
 </div>
 
 <script>
 
-let audioCtx=null;
-
-function playSound(type){
-
-if(!document.getElementById('sound-toggle').checked) return;
-
-if(!audioCtx){
-audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-}
-
-const osc=audioCtx.createOscillator();
-const gain=audioCtx.createGain();
-
-osc.connect(gain);
-gain.connect(audioCtx.destination);
-
-if(type==="switch"){
-osc.frequency.value=600;
-gain.gain.value=.05;
-osc.start();
-osc.stop(audioCtx.currentTime+.05);
-}
-
-if(type==="warning"){
-osc.frequency.value=900;
-gain.gain.value=.08;
-osc.start();
-osc.stop(audioCtx.currentTime+.1);
-}
-
-if(type==="gameover"){
-osc.frequency.value=220;
-gain.gain.value=.2;
-osc.start();
-osc.stop(audioCtx.currentTime+.4);
-}
-
-}
-
-let isRunning=false;
-let activePlayer=null;
-let intervalId=null;
 let playerCount=2;
+let activePlayer=1;
+let isRunning=false;
+let intervalId=null;
 
 let playerTimes=[];
-let playerEliminated=[];
-let turnStartTimes=[];
+let playerDead=[];
 
-const btnStart=document.getElementById('btn-start');
-const btnPause=document.getElementById('btn-pause');
-const btnReset=document.getElementById('btn-reset');
+const settingsScreen=
+document.getElementById('settings-screen');
 
-const container=document.getElementById('clocks-container');
+const timerScreen=
+document.getElementById('timer-screen');
 
-const countSelector=document.getElementById('player-count');
-const layoutSelector=document.getElementById('player-layout');
+const container=
+document.getElementById('clocks-container');
 
 function formatTime(sec){
 
@@ -512,38 +368,50 @@ return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
 }
 
-function rebuildGrid(){
-
-playerCount=parseInt(countSelector.value);
+function buildGrid(){
 
 container.innerHTML="";
 
+playerCount=parseInt(
+document.getElementById('player-count').value
+);
+
+container.className="";
+
 if(playerCount===2){
-container.className=
-layoutSelector.value==="side"
-? "grid-2-side"
-: "grid-2-opposite";
+container.classList.add('grid-2');
 }
 
 if(playerCount===3){
-container.className="grid-3-mix";
+container.classList.add('grid-3');
 }
 
 if(playerCount===4){
-container.className="grid-4-square";
+container.classList.add('grid-4');
 }
 
 for(let i=1;i<=playerCount;i++){
 
 const face=document.createElement('div');
 
-face.className='clock-face disabled';
-face.id=`player${i}-face`;
+face.className='clock-face';
+face.id=`player${i}`;
 
 face.innerHTML=`
-<div class="player-label">Player ${i}</div>
-<div class="time-display" id="p${i}-time">00:00</div>
-<div class="delay-display" id="p${i}-delay"></div>
+
+<div class="player-label">
+PLAYER ${i}
+</div>
+
+<div class="time-display"
+id="time${i}">
+00:00
+</div>
+
+<div class="delay-display"
+id="delay${i}">
+</div>
+
 `;
 
 face.addEventListener('click',()=>switchTurn(i));
@@ -554,98 +422,95 @@ container.appendChild(face);
 
 }
 
-function initClocks(){
+function initGame(){
 
-const mins=parseInt(document.getElementById('base-min').value)||0;
-const secs=parseInt(document.getElementById('base-sec').value)||30;
+buildGrid();
 
-const total=(mins*60)+secs;
+const min=parseInt(
+document.getElementById('base-min').value
+)||0;
+
+const sec=parseInt(
+document.getElementById('base-sec').value
+)||0;
+
+const total=(min*60)+sec;
 
 playerTimes=[];
-playerEliminated=[];
-turnStartTimes=[];
-
-rebuildGrid();
+playerDead=[];
 
 for(let i=1;i<=playerCount;i++){
 
 playerTimes[i]=total;
-playerEliminated[i]=false;
-turnStartTimes[i]=total;
+playerDead[i]=false;
 
-document.getElementById(`p${i}-time`).textContent=formatTime(total);
+document.getElementById(
+`time${i}`
+).textContent=formatTime(total);
 
 }
-
-}
-
-function startTimer(){
-
-if(isRunning) return;
-
-isRunning=true;
-
-btnStart.style.display='none';
-btnPause.style.display='block';
-
-if(!activePlayer){
 
 activePlayer=1;
 
-document.getElementById('player1-face')
-.classList.add('active');
+document.getElementById(
+'player1'
+).classList.add('active');
 
 }
 
-intervalId=setInterval(()=>{
+function startGame(){
+
+settingsScreen.style.display='none';
+
+timerScreen.style.display='block';
+
+initGame();
+
+isRunning=true;
+
+intervalId=setInterval(tick,100);
+
+}
+
+function tick(){
+
+if(!isRunning) return;
 
 playerTimes[activePlayer]-=.1;
-
-if(playerTimes[activePlayer]<=10){
-playSound('warning');
-}
 
 if(playerTimes[activePlayer]<=0){
 
 playerTimes[activePlayer]=0;
 
 document.getElementById(
-`p${activePlayer}-time`
+`time${activePlayer}`
 ).textContent='00:00';
 
-flagFall(activePlayer);
-
-return;
-}
-
 document.getElementById(
-`p${activePlayer}-time`
-).textContent=formatTime(playerTimes[activePlayer]);
+`player${activePlayer}`
+).classList.add('flagged');
 
-},100);
-
-}
-
-function pauseTimer(){
-
-isRunning=false;
+playerDead[activePlayer]=true;
 
 clearInterval(intervalId);
 
-btnStart.style.display='block';
-btnPause.style.display='none';
+return;
+
+}
+
+document.getElementById(
+`time${activePlayer}`
+).textContent=
+formatTime(playerTimes[activePlayer]);
 
 }
 
 function switchTurn(player){
 
-if(!isRunning) return;
-if(activePlayer!==player) return;
-
-playSound('switch');
+if(player!==activePlayer) return;
 
 document.getElementById(
-`player${activePlayer}-face`
+`player${activePlayer}`
 ).classList.remove('active');
 
 let next=player;
@@ -653,99 +518,43 @@ let next=player;
 do{
 next=(next%playerCount)+1;
 }
-while(playerEliminated[next]);
+while(playerDead[next]);
 
 activePlayer=next;
 
 document.getElementById(
-`player${activePlayer}-face`
+`player${activePlayer}`
 ).classList.add('active');
 
 }
 
-function flagFall(player){
-
-playSound('gameover');
-
-playerEliminated[player]=true;
+document.getElementById(
+'start-game'
+).addEventListener('click',startGame);
 
 document.getElementById(
-`player${player}-face`
-).classList.add('flagged');
+'back-btn'
+).addEventListener('click',()=>{
 
-pauseTimer();
+clearInterval(intervalId);
 
-}
+timerScreen.style.display='none';
 
-btnStart.addEventListener('click',()=>{
-
-if(container.children.length===0){
-initClocks();
-}
-
-startTimer();
+settingsScreen.style.display='flex';
 
 });
 
-btnPause.addEventListener('click',pauseTimer);
+document.getElementById(
+'reset-btn'
+).addEventListener('click',()=>{
 
-btnReset.addEventListener('click',()=>{
+clearInterval(intervalId);
 
-pauseTimer();
+initGame();
 
-activePlayer=null;
-
-initClocks();
-
-});
-
-countSelector.addEventListener('change',()=>{
-
-if(!isRunning){
-initClocks();
-}
+intervalId=setInterval(tick,100);
 
 });
-
-layoutSelector.addEventListener('change',()=>{
-
-if(!isRunning){
-initClocks();
-}
-
-});
-
-document.addEventListener('keydown',(e)=>{
-
-if(e.code==="Space"){
-
-e.preventDefault();
-
-if(isRunning&&activePlayer){
-switchTurn(activePlayer);
-}
-
-}
-
-});
-
-window.addEventListener('offline',()=>{
-
-pauseTimer();
-
-document.getElementById('network-alert')
-.style.display='block';
-
-});
-
-window.addEventListener('online',()=>{
-
-document.getElementById('network-alert')
-.style.display='none';
-
-});
-
-initClocks();
 
 </script>
 
