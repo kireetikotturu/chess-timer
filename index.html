@@ -1,672 +1,753 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Elite Multi-Player Arena Clock</title>
-  <style>
-    :root {
-      --bg-main: #060913;
-      --bg-card: #0d1322;
-      --bg-active: #10b981;
-      --bg-inactive: #1e293b;
-      --text-primary: #f8fafc;
-      --text-muted: #64748b;
-      --accent: #4f46e5;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-    }
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+<title>Elite Multi-Player Arena Clock</title>
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-main);
-      color: var(--text-primary);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+<style>
 
-    /* Connection Interruption Safety Label */
-    #network-alert {
-      background: var(--danger);
-      color: white;
-      text-align: center;
-      padding: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: none;
-      letter-spacing: 0.05em;
-      z-index: 100;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    }
+:root{
+  --bg-main:#060913;
+  --bg-card:#0d1322;
+  --bg-active:#10b981;
+  --bg-inactive:#1e293b;
+  --text-primary:#f8fafc;
+  --text-muted:#64748b;
+  --accent:#4f46e5;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+}
 
-    /* Configuration Panel Controls */
-    #config-panel {
-      background: var(--bg-card);
-      padding: 16px 24px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: flex-end;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      z-index: 10;
-    }
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex: 1;
-      min-width: 100px;
-    }
+html,
+body{
+  width:100%;
+  min-height:100vh;
+  overflow-x:hidden;
+  background:var(--bg-main);
+  color:var(--text-primary);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
 
-    label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      font-weight: 700;
-    }
+/* =========================
+   BODY
+========================= */
 
-    input, select {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #fff;
-      padding: 10px 12px;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-    option {
-      background-color: #0d1322;
-      color: #f8fafc;
-    }
+body{
+  display:flex;
+  flex-direction:column;
+}
 
-    input:focus, select:focus {
-      border-color: var(--accent);
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-    }
+/* =========================
+   NETWORK ALERT
+========================= */
 
-    .checkbox-group {
-      flex-direction: row;
-      align-items: center;
-      gap: 8px;
-      min-width: auto;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
+#network-alert{
+  background:var(--danger);
+  color:#fff;
+  text-align:center;
+  padding:10px;
+  font-size:.85rem;
+  font-weight:700;
+  display:none;
+  z-index:100;
+}
 
-    input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--bg-active);
-    }
+/* =========================
+   CONFIG PANEL
+========================= */
 
-    #global-controls {
-      display: flex;
-      gap: 8px;
-      margin-left: auto;
-    }
+#config-panel{
+  background:var(--bg-card);
+  padding:16px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  align-items:flex-end;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
 
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  flex:1;
+  min-width:120px;
+}
 
-    .btn-start { background: var(--bg-active); color: #fff; }
-    .btn-start:hover { background: #059669; }
-    .btn-pause { background: var(--warning); color: #fff; display: none; }
-    .btn-pause:hover { background: #d97706; }
-    .btn-reset { background: rgba(255, 255, 255, 0.04); color: var(--text-primary); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .btn-reset:hover { background: rgba(255, 255, 255, 0.08); }
+label{
+  font-size:.65rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--text-muted);
+  font-weight:700;
+}
 
-    /* Flexible Grid Arena Container */
-    #clocks-container {
-      flex: 1;
-      display: grid;
-      gap: 12px;
-      padding: 12px;
-      position: relative;
-      height: 100%;
-    }
+input,
+select{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  font-size:.9rem;
+  outline:none;
+}
 
-    /* Player Control Panels */
-    .clock-face {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      position: relative;
-      border-radius: 16px;
-      background: var(--bg-inactive);
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-    }
+option{
+  background:#0d1322;
+}
 
-    .clock-face::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 16px;
-      border: 3px solid transparent;
-      transition: border-color 0.2s;
-      pointer-events: none;
-    }
+input:focus,
+select:focus{
+  border-color:var(--accent);
+}
 
-    .clock-face.active {
-      background: rgba(16, 185, 129, 0.05);
-      box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.1);
-    }
-    .clock-face.active::after {
-      border-color: var(--bg-active);
-    }
+.checkbox-group{
+  flex-direction:row;
+  align-items:center;
+  gap:8px;
+  min-width:auto;
+}
 
-    .clock-face.disabled {
-      opacity: 0.2;
-      cursor: not-allowed;
-    }
+input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  accent-color:var(--bg-active);
+}
 
-    .clock-face.flagged {
-      background: rgba(239, 68, 68, 0.15) !important;
-      animation: modernPulse 0.8s infinite alternate ease-in-out;
-    }
-    .clock-face.flagged::after {
-      border-color: var(--danger) !important;
-    }
+/* =========================
+   BUTTONS
+========================= */
 
-    @keyframes modernPulse {
-      from { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); }
-      to { box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.4); }
-    }
+#global-controls{
+  display:flex;
+  gap:10px;
+  margin-left:auto;
+}
 
-    .time-display {
-      font-size: clamp(2.5rem, 9vw, 7rem);
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.02em;
-    }
+.btn{
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  font-size:.9rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:.2s;
+}
 
-    .delay-display {
-      font-size: clamp(0.8rem, 2vw, 1.2rem);
-      color: var(--warning);
-      font-weight: 600;
-      height: 1.2rem;
-      margin-top: 4px;
-    }
+.btn-start{
+  background:var(--bg-active);
+  color:#fff;
+}
 
-    .player-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--text-muted);
-      position: absolute;
-      top: 16px;
-    }
-    
-    .clock-face.active .player-label {
-      color: var(--bg-active);
-    }
+.btn-pause{
+  background:var(--warning);
+  color:#fff;
+  display:none;
+}
 
-    #spacebar-hint {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 6px 16px;
-      border-radius: 30px;
-      font-size: 0.7rem;
-      font-weight: 500;
-      pointer-events: none;
-      color: var(--text-muted);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      z-index: 5;
-    }
+.btn-reset{
+  background:rgba(255,255,255,.05);
+  color:#fff;
+}
 
-    /* Dynamic Grid Layout Allocations via Engine Classes */
-    
-    /* -- 2 PLAYER ALTERNATIVES -- */
-    .grid-2-opposite { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-    .grid-2-opposite #player1-face { transform: rotate(180deg); }
-    
-    .grid-2-side { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+/* =========================
+   CLOCK GRID
+========================= */
 
-    /* -- 3 PLAYER STRATEGY GRID -- */
-    .grid-3-mix { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-    .grid-3-mix #player3-face { grid-column: span 2; }
+#clocks-container{
+  flex:1;
+  display:grid;
+  gap:12px;
+  padding:12px;
+  width:100%;
+}
 
-    /* -- 4 PLAYER ARENA MAP -- */
-    .grid-4-square { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+/* =========================
+   CLOCK FACE
+========================= */
 
-    /* Mobile Responsive Adaptation Rules */
-    @media (max-width: 768px) {
-      #config-panel { padding: 12px; gap: 6px; }
-      #global-controls { width: 100%; margin-top: 4px; }
-      .form-group { min-width: 80px; }
-      .grid-2-side { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-      #spacebar-hint { display: none; }
-    }
-  </style>
+.clock-face{
+  background:var(--bg-inactive);
+  border-radius:18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+  cursor:pointer;
+  overflow:hidden;
+  min-height:180px;
+  transition:.2s;
+}
+
+.clock-face.active{
+  background:rgba(16,185,129,.1);
+  border:3px solid var(--bg-active);
+}
+
+.clock-face.flagged{
+  background:rgba(239,68,68,.2);
+  border:3px solid var(--danger);
+}
+
+.clock-face.disabled{
+  opacity:.3;
+}
+
+/* =========================
+   TEXT
+========================= */
+
+.player-label{
+  position:absolute;
+  top:16px;
+  font-size:.8rem;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  font-weight:700;
+  letter-spacing:.1em;
+}
+
+.time-display{
+  font-size:clamp(2.5rem,8vw,6rem);
+  font-weight:800;
+  line-height:1;
+  text-align:center;
+}
+
+.delay-display{
+  margin-top:8px;
+  color:var(--warning);
+  font-size:1rem;
+  font-weight:700;
+}
+
+/* =========================
+   GRID LAYOUTS
+========================= */
+
+.grid-2-opposite{
+  grid-template-columns:1fr;
+  grid-template-rows:1fr 1fr;
+}
+
+.grid-2-opposite #player1-face{
+  transform:rotate(180deg);
+}
+
+.grid-2-side{
+  grid-template-columns:1fr 1fr;
+}
+
+.grid-3-mix{
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+}
+
+.grid-3-mix #player3-face{
+  grid-column:span 2;
+}
+
+.grid-4-square{
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+}
+
+/* =========================
+   SPACEBAR HINT
+========================= */
+
+#spacebar-hint{
+  text-align:center;
+  padding:10px;
+  color:var(--text-muted);
+  font-size:.8rem;
+}
+
+/* =========================
+   MOBILE FIXES
+========================= */
+
+@media(max-width:768px){
+
+  #config-panel{
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    padding:12px;
+  }
+
+  .form-group{
+    width:100%;
+    min-width:100%;
+  }
+
+  input,
+  select{
+    width:100%;
+    font-size:16px;
+  }
+
+  #global-controls{
+    width:100%;
+    margin:0;
+  }
+
+  .btn{
+    flex:1;
+    width:100%;
+  }
+
+  #clocks-container{
+    gap:8px;
+    padding:8px;
+  }
+
+  .grid-2-side,
+  .grid-2-opposite{
+    grid-template-columns:1fr;
+    grid-template-rows:1fr 1fr;
+  }
+
+  .grid-3-mix{
+    grid-template-columns:1fr;
+    grid-template-rows:repeat(3,1fr);
+  }
+
+  .grid-3-mix #player3-face{
+    grid-column:auto;
+  }
+
+  .grid-4-square{
+    grid-template-columns:1fr;
+    grid-template-rows:repeat(4,1fr);
+  }
+
+  .clock-face{
+    min-height:120px;
+    padding:10px;
+  }
+
+  .time-display{
+    font-size:clamp(2rem,12vw,4rem);
+  }
+
+  .player-label{
+    position:static;
+    margin-bottom:10px;
+  }
+
+  #spacebar-hint{
+    display:none;
+  }
+}
+
+@media(max-width:480px){
+
+  .clock-face{
+    min-height:100px;
+  }
+
+  .time-display{
+    font-size:clamp(1.8rem,14vw,3rem);
+  }
+
+  .btn{
+    padding:10px;
+    font-size:.8rem;
+  }
+}
+
+</style>
 </head>
+
 <body>
 
-  <!-- Interruption Banner Element -->
-  <div id="network-alert">INTERNET DISRUPTED - ARENA CLOCKS SAFETY FROZEN</div>
+<div id="network-alert">
+INTERNET DISRUPTED - CLOCK PAUSED
+</div>
 
-  <!-- Configuration Bar -->
-  <div id="config-panel">
-    <div class="form-group">
-      <label for="player-count">Players</label>
-      <select id="player-count">
-        <option value="2" selected>2 Players</option>
-        <option value="3">3 Players</option>
-        <option value="4">4 Players</option>
-      </select>
-    </div>
+<div id="config-panel">
 
-    <div class="form-group" id="layout-wrapper">
-      <label for="player-layout">Orientation</label>
-      <select id="player-layout">
-        <option value="opposite" selected>Face to Face</option>
-        <option value="side">Side by Side</option>
-      </select>
-    </div>
+<div class="form-group">
+<label>Players</label>
+<select id="player-count">
+<option value="2">2 Players</option>
+<option value="3">3 Players</option>
+<option value="4">4 Players</option>
+</select>
+</div>
 
-    <div class="form-group">
-      <label for="base-min">Minutes</label>
-      <input type="number" id="base-min" value="0" min="0" max="60">
-    </div>
+<div class="form-group" id="layout-wrapper">
+<label>Orientation</label>
+<select id="player-layout">
+<option value="opposite">Face to Face</option>
+<option value="side">Side by Side</option>
+</select>
+</div>
 
-    <div class="form-group">
-      <label for="base-sec">Seconds</label>
-      <input type="number" id="base-sec" value="30" min="0" max="59">
-    </div>
-    
-    <div class="form-group">
-      <label for="extra-sec">Delay (sec)</label>
-      <input type="number" id="extra-sec" value="0" min="0" max="30">
-    </div>
+<div class="form-group">
+<label>Minutes</label>
+<input type="number" id="base-min" value="0">
+</div>
 
-    <div class="form-group">
-      <label for="timing-method">Method</label>
-      <select id="timing-method">
-        <option value="bronstein">Bronstein</option>
-        <option value="sudden">Sudden Death</option>
-        <option value="fischer">Fischer</option>
-      </select>
-    </div>
+<div class="form-group">
+<label>Seconds</label>
+<input type="number" id="base-sec" value="30">
+</div>
 
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="sound-toggle" checked>
-      <label for="sound-toggle">Audio</label>
-    </div>
+<div class="form-group">
+<label>Delay</label>
+<input type="number" id="extra-sec" value="0">
+</div>
 
-    <div id="global-controls">
-      <button class="btn btn-start" id="btn-start">Go!</button>
-      <button class="btn btn-pause" id="btn-pause">Pause</button>
-      <button class="btn btn-reset" id="btn-reset">Reset</button>
-    </div>
-  </div>
+<div class="form-group">
+<label>Method</label>
+<select id="timing-method">
+<option value="bronstein">Bronstein</option>
+<option value="sudden">Sudden Death</option>
+<option value="fischer">Fischer</option>
+</select>
+</div>
 
-  <!-- Chess Arena Grid -->
-  <div id="clocks-container">
-    <!-- Generated dynamically via Javascript Engine to protect nodes -->
-  </div>
+<div class="form-group checkbox-group">
+<input type="checkbox" id="sound-toggle" checked>
+<label for="sound-toggle">Audio</label>
+</div>
 
-  <div id="spacebar-hint">Press SPACEBAR to cycle turns</div>
+<div id="global-controls">
+<button class="btn btn-start" id="btn-start">Go!</button>
+<button class="btn btn-pause" id="btn-pause">Pause</button>
+<button class="btn btn-reset" id="btn-reset">Reset</button>
+</div>
 
-  <script>
-    // Audio Synthesis Core Engine
-    let audioCtx = null;
-    function playSound(type) {
-      if (!document.getElementById('sound-toggle').checked) return;
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
+</div>
 
-      if (type === 'switch') {
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-      } else if (type === 'warning30') {
-        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-      } else if (type === 'warning10') {
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.18);
-      } else if (type === 'gameover') {
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-      }
-    }
+<div id="clocks-container"></div>
 
-    // Dynamic State Values Map Arrays
-    let isRunning = false;
-    let activePlayer = null; 
-    let intervalId = null;
-    let playerCount = 2;
+<div id="spacebar-hint">
+Press SPACEBAR to switch turns
+</div>
 
-    let playerTimes = []; // Holds arrays index matched
-    let turnStartTimes = [];
-    let warnings30 = [];
-    let warnings10 = [];
-    let playerEliminated = [];
+<script>
 
-    const btnStart = document.getElementById('btn-start');
-    const btnPause = document.getElementById('btn-pause');
-    const btnReset = document.getElementById('btn-reset');
-    const container = document.getElementById('clocks-container');
-    const countSelector = document.getElementById('player-count');
-    const layoutSelector = document.getElementById('player-layout');
-    const layoutWrapper = document.getElementById('layout-wrapper');
-    const networkAlert = document.getElementById('network-alert');
+let audioCtx=null;
 
-    function formatTime(totalSeconds) {
-      if (totalSeconds <= 0) return "00:00";
-      const mins = Math.floor(totalSeconds / 60);
-      const secs = Math.ceil(totalSeconds % 60);
-      return `${mins < 10 ? '0' + mins : mins}:${secs < 10 ? '0' + secs : secs}`;
-    }
+function playSound(type){
 
-    // Renders the correct number of panels depending on your configuration setup
-    function rebuildPlayerGridUI() {
-      playerCount = parseInt(countSelector.value);
-      container.innerHTML = "";
-      
-      // Toggle orientation select layout visibility (only useful for 2 players)
-      layoutWrapper.style.display = playerCount === 2 ? "flex" : "none";
+if(!document.getElementById('sound-toggle').checked) return;
 
-      // Apply dynamic CSS structure shapes
-      if (playerCount === 2) {
-        container.className = layoutSelector.value === 'side' ? 'grid-2-side' : 'grid-2-opposite';
-      } else if (playerCount === 3) {
-        container.className = 'grid-3-mix';
-      } else {
-        container.className = 'grid-4-square';
-      }
+if(!audioCtx){
+audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+}
 
-      // Generate HTML Nodes dynamically
-      for (let i = 1; i <= playerCount; i++) {
-        const face = document.createElement('div');
-        face.id = `player${i}-face`;
-        face.className = 'clock-face disabled';
-        face.innerHTML = `
-          <span class="player-label">Player ${i}</span>
-          <div class="time-display" id="p${i}-time">00:00</div>
-          <div class="delay-display" id="p${i}-delay"></div>
-        `;
-        face.addEventListener('click', () => switchTurn(i));
-        container.appendChild(face);
-      }
-    }
+const osc=audioCtx.createOscillator();
+const gain=audioCtx.createGain();
 
-    // Local Storage Session State Saves
-    function saveGameState() {
-      const state = {
-        playerTimes, activePlayer, isRunning, turnStartTimes,
-        warnings30, warnings10, playerEliminated, playerCount,
-        config: {
-          count: countSelector.value, layout: layoutSelector.value,
-          min: document.getElementById('base-min').value,
-          sec: document.getElementById('base-sec').value,
-          extra: document.getElementById('extra-sec').value,
-          method: document.getElementById('timing-method').value,
-          audio: document.getElementById('sound-toggle').checked
-        }
-      };
-      localStorage.setItem('multi_chess_clock_backup', JSON.stringify(state));
-    }
+osc.connect(gain);
+gain.connect(audioCtx.destination);
 
-    function loadGameState() {
-      const saved = localStorage.getItem('multi_chess_clock_backup');
-      if (!saved) return false;
-      try {
-        const state = JSON.parse(saved);
-        
-        countSelector.value = state.config.count;
-        layoutSelector.value = state.config.layout;
-        document.getElementById('base-min').value = state.config.min;
-        document.getElementById('base-sec').value = state.config.sec;
-        document.getElementById('extra-sec').value = state.config.extra;
-        document.getElementById('timing-method').value = state.config.method;
-        document.getElementById('sound-toggle').checked = state.config.audio;
+if(type==="switch"){
+osc.frequency.value=600;
+gain.gain.value=.05;
+osc.start();
+osc.stop(audioCtx.currentTime+.05);
+}
 
-        rebuildPlayerGridUI();
+if(type==="warning"){
+osc.frequency.value=900;
+gain.gain.value=.08;
+osc.start();
+osc.stop(audioCtx.currentTime+.1);
+}
 
-        playerTimes = state.playerTimes;
-        activePlayer = state.activePlayer;
-        turnStartTimes = state.turnStartTimes;
-        warnings30 = state.warnings30; warnings10 = state.warnings10;
-        playerEliminated = state.playerEliminated;
-        playerCount = state.playerCount;
+if(type==="gameover"){
+osc.frequency.value=220;
+gain.gain.value=.2;
+osc.start();
+osc.stop(audioCtx.currentTime+.4);
+}
 
-        for(let i = 1; i <= playerCount; i++) {
-          const face = document.getElementById(`player${i}-face`);
-          face.classList.remove('disabled', 'active', 'flagged');
-          document.getElementById(`p${i}-time`).textContent = formatTime(playerTimes[i]);
-          
-          if (playerEliminated[i]) face.classList.add('flagged');
-          else if (activePlayer === i) face.classList.add('active');
-        }
+}
 
-        isRunning = false;
-        btnStart.style.display = "block"; btnPause.style.display = "none";
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
+let isRunning=false;
+let activePlayer=null;
+let intervalId=null;
+let playerCount=2;
 
-    function initClocks() {
-      const baseMin = parseInt(document.getElementById('base-min').value) || 0;
-      const baseSec = parseInt(document.getElementById('base-sec').value) || 0;
-      let totalTime = (baseMin * 60) + baseSec;
-      if (totalTime <= 0) totalTime = 30;
+let playerTimes=[];
+let playerEliminated=[];
+let turnStartTimes=[];
 
-      playerTimes = []; turnStartTimes = [];
-      warnings30 = []; warnings10 = []; playerEliminated = [];
+const btnStart=document.getElementById('btn-start');
+const btnPause=document.getElementById('btn-pause');
+const btnReset=document.getElementById('btn-reset');
 
-      rebuildPlayerGridUI();
+const container=document.getElementById('clocks-container');
 
-      for (let i = 1; i <= playerCount; i++) {
-        playerTimes[i] = totalTime;
-        turnStartTimes[i] = totalTime;
-        warnings30[i] = totalTime <= 30;
-        warnings10[i] = totalTime <= 10;
-        playerEliminated[i] = false;
+const countSelector=document.getElementById('player-count');
+const layoutSelector=document.getElementById('player-layout');
 
-        document.getElementById(`p${i}-time`).textContent = formatTime(totalTime);
-        document.getElementById(`p${i}-delay`).textContent = "";
-      }
-      saveGameState();
-    }
+function formatTime(sec){
 
-    function startTimer() {
-      if (isRunning) return;
-      isRunning = true;
-      btnStart.style.display = "none"; btnPause.style.display = "block";
+if(sec<=0) return "00:00";
 
-      for (let i = 1; i <= playerCount; i++) {
-        if (!playerEliminated[i]) document.getElementById(`player${i}-face`).classList.remove('disabled');
-      }
+const m=Math.floor(sec/60);
+const s=Math.ceil(sec%60);
 
-      if (!activePlayer) {
-        activePlayer = 1;
-        document.getElementById('player1-face').classList.add('active');
-        turnStartTimes[activePlayer] = playerTimes[activePlayer];
-      }
+return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 
-      const tick = 0.1;
-      intervalId = setInterval(() => {
-        const method = document.getElementById('timing-method').value;
-        const maxExtra = parseInt(document.getElementById('extra-sec').value) || 0;
+}
 
-        playerTimes[activePlayer] -= tick;
+function rebuildGrid(){
 
-        if (playerTimes[activePlayer] <= 30 && !warnings30[activePlayer]) { playSound('warning30'); warnings30[activePlayer] = true; }
-        if (playerTimes[activePlayer] <= 10 && !warnings10[activePlayer]) { playSound('warning10'); warnings10[activePlayer] = true; }
+playerCount=parseInt(countSelector.value);
 
-        if (playerTimes[activePlayer] <= 0) {
-          playerTimes[activePlayer] = 0;
-          document.getElementById(`p${activePlayer}-time`).textContent = formatTime(0);
-          flagFall(activePlayer);
-          return;
-        }
+container.innerHTML="";
 
-        document.getElementById(`p${activePlayer}-time`).textContent = formatTime(playerTimes[activePlayer]);
+if(playerCount===2){
+container.className=
+layoutSelector.value==="side"
+? "grid-2-side"
+: "grid-2-opposite";
+}
 
-        if (method === 'bronstein' && maxExtra > 0) {
-          const spent = turnStartTimes[activePlayer] - playerTimes[activePlayer];
-          document.getElementById(`p${activePlayer}-delay`).textContent = spent < maxExtra ? `Delay: ${Math.ceil(maxExtra - spent)}s` : "";
-        }
-        saveGameState();
-      }, 100);
-    }
+if(playerCount===3){
+container.className="grid-3-mix";
+}
 
-    function pauseTimer() {
-      if (!isRunning) return;
-      isRunning = false;
-      clearInterval(intervalId);
-      btnStart.style.display = "block"; btnPause.style.display = "none";
-      saveGameState();
-    }
+if(playerCount===4){
+container.className="grid-4-square";
+}
 
-    function switchTurn(fromPlayer) {
-      if (!isRunning || activePlayer !== fromPlayer || playerEliminated[fromPlayer]) return;
-      
-      const method = document.getElementById('timing-method').value;
-      const extraSec = parseInt(document.getElementById('extra-sec').value) || 0;
-      playSound('switch');
+for(let i=1;i<=playerCount;i++){
 
-      // Apply increments / delay mechanics values maps
-      if (method === 'bronstein') playerTimes[fromPlayer] += Math.min(turnStartTimes[fromPlayer] - playerTimes[fromPlayer], extraSec);
-      else if (method === 'fischer') playerTimes[fromPlayer] += extraSec;
+const face=document.createElement('div');
 
-      document.getElementById(`p${fromPlayer}-time`).textContent = formatTime(playerTimes[fromPlayer]);
-      document.getElementById(`p${fromPlayer}-delay`).textContent = "";
-      document.getElementById(`player${fromPlayer}-face`).classList.remove('active');
+face.className='clock-face disabled';
+face.id=`player${i}-face`;
 
-      // Loop dynamically to find next living player sequence
-      let nextPlayer = fromPlayer;
-      let loops = 0;
-      do {
-        nextPlayer = (nextPlayer % playerCount) + 1;
-        loops++;
-      } while (playerEliminated[nextPlayer] && loops < playerCount);
+face.innerHTML=`
+<div class="player-label">Player ${i}</div>
+<div class="time-display" id="p${i}-time">00:00</div>
+<div class="delay-display" id="p${i}-delay"></div>
+`;
 
-      // If everyone else is dead, current player won
-      if (playerEliminated[nextPlayer]) {
-        pauseTimer();
-        return;
-      }
+face.addEventListener('click',()=>switchTurn(i));
 
-      activePlayer = nextPlayer;
-      document.getElementById(`player${activePlayer}-face`).classList.add('active');
-      turnStartTimes[activePlayer] = playerTimes[activePlayer];
-      saveGameState();
-    }
+container.appendChild(face);
 
-    function flagFall(player) {
-      playSound('gameover');
-      playerEliminated[player] = true;
-      document.getElementById(`player${player}-face`).classList.remove('active');
-      document.getElementById(`player${player}-face`).classList.add('flagged');
+}
 
-      // Look for survivors remaining
-      let activeSurvivors = 0;
-      let lastSurvivorIndex = 0;
-      for (let i = 1; i <= playerCount; i++) {
-        if (!playerEliminated[i]) { activeSurvivors++; lastSurvivorIndex = i; }
-      }
+}
 
-      clearInterval(intervalId);
-      isRunning = false;
+function initClocks(){
 
-      if (activeSurvivors > 1) {
-        // Automatic sequence fallback passes to next person alive
-        activePlayer = lastSurvivorIndex; 
-        isRunning = true;
-        let nextPlayer = player;
-        do { nextPlayer = (nextPlayer % playerCount) + 1; } while (playerEliminated[nextPlayer]);
-        activePlayer = nextPlayer;
-        document.getElementById(`player${activePlayer}-face`).classList.add('active');
-        turnStartTimes[activePlayer] = playerTimes[activePlayer];
-        startTimer();
-      } else {
-        // Complete Game Over Condition Met
-        activePlayer = null;
-        btnStart.style.display = "block"; btnPause.style.display = "none";
-        localStorage.removeItem('multi_chess_clock_backup');
-      }
-    }
+const mins=parseInt(document.getElementById('base-min').value)||0;
+const secs=parseInt(document.getElementById('base-sec').value)||30;
 
-    // Event Wire Mappings
-    window.addEventListener('offline', () => { if (isRunning) { pauseTimer(); networkAlert.style.display = "block"; } });
-    window.addEventListener('online', () => { networkAlert.style.display = "none"; });
+const total=(mins*60)+secs;
 
-    btnStart.addEventListener('click', () => {
-      if (container.children.length === 0 || (!isRunning && !activePlayer && playerTimes.length === 0)) initClocks();
-      startTimer();
-    });
-    btnPause.addEventListener('click', pauseTimer);
-    btnReset.addEventListener('click', () => {
-      pauseTimer(); activePlayer = null; initClocks();
-      btnStart.style.display = "block"; btnPause.style.display = "none";
-      localStorage.removeItem('multi_chess_clock_backup');
-    });
+playerTimes=[];
+playerEliminated=[];
+turnStartTimes=[];
 
-    countSelector.addEventListener('change', () => { if (!isRunning && !activePlayer) initClocks(); });
-    layoutSelector.addEventListener('change', () => { if (!isRunning && !activePlayer) initClocks(); });
+rebuildGrid();
 
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault(); 
-        if (isRunning && activePlayer) switchTurn(activePlayer);
-      }
-    });
+for(let i=1;i<=playerCount;i++){
 
-    document.getElementById('base-min').addEventListener('change', () => { if(!isRunning && !activePlayer) initClocks(); });
-    document.getElementById('base-sec').addEventListener('change', () => { if(!isRunning && !activePlayer) initClocks(); });
+playerTimes[i]=total;
+playerEliminated[i]=false;
+turnStartTimes[i]=total;
 
-    // Initial Execution Loading Pass
-    if (!loadGameState()) {
-      initClocks();
-    }
-  </script>
+document.getElementById(`p${i}-time`).textContent=formatTime(total);
+
+}
+
+}
+
+function startTimer(){
+
+if(isRunning) return;
+
+isRunning=true;
+
+btnStart.style.display='none';
+btnPause.style.display='block';
+
+if(!activePlayer){
+
+activePlayer=1;
+
+document.getElementById('player1-face')
+.classList.add('active');
+
+}
+
+intervalId=setInterval(()=>{
+
+playerTimes[activePlayer]-=.1;
+
+if(playerTimes[activePlayer]<=10){
+playSound('warning');
+}
+
+if(playerTimes[activePlayer]<=0){
+
+playerTimes[activePlayer]=0;
+
+document.getElementById(
+`p${activePlayer}-time`
+).textContent='00:00';
+
+flagFall(activePlayer);
+
+return;
+}
+
+document.getElementById(
+`p${activePlayer}-time`
+).textContent=formatTime(playerTimes[activePlayer]);
+
+},100);
+
+}
+
+function pauseTimer(){
+
+isRunning=false;
+
+clearInterval(intervalId);
+
+btnStart.style.display='block';
+btnPause.style.display='none';
+
+}
+
+function switchTurn(player){
+
+if(!isRunning) return;
+if(activePlayer!==player) return;
+
+playSound('switch');
+
+document.getElementById(
+`player${activePlayer}-face`
+).classList.remove('active');
+
+let next=player;
+
+do{
+next=(next%playerCount)+1;
+}
+while(playerEliminated[next]);
+
+activePlayer=next;
+
+document.getElementById(
+`player${activePlayer}-face`
+).classList.add('active');
+
+}
+
+function flagFall(player){
+
+playSound('gameover');
+
+playerEliminated[player]=true;
+
+document.getElementById(
+`player${player}-face`
+).classList.add('flagged');
+
+pauseTimer();
+
+}
+
+btnStart.addEventListener('click',()=>{
+
+if(container.children.length===0){
+initClocks();
+}
+
+startTimer();
+
+});
+
+btnPause.addEventListener('click',pauseTimer);
+
+btnReset.addEventListener('click',()=>{
+
+pauseTimer();
+
+activePlayer=null;
+
+initClocks();
+
+});
+
+countSelector.addEventListener('change',()=>{
+
+if(!isRunning){
+initClocks();
+}
+
+});
+
+layoutSelector.addEventListener('change',()=>{
+
+if(!isRunning){
+initClocks();
+}
+
+});
+
+document.addEventListener('keydown',(e)=>{
+
+if(e.code==="Space"){
+
+e.preventDefault();
+
+if(isRunning&&activePlayer){
+switchTurn(activePlayer);
+}
+
+}
+
+});
+
+window.addEventListener('offline',()=>{
+
+pauseTimer();
+
+document.getElementById('network-alert')
+.style.display='block';
+
+});
+
+window.addEventListener('online',()=>{
+
+document.getElementById('network-alert')
+.style.display='none';
+
+});
+
+initClocks();
+
+</script>
+
 </body>
 </html>
