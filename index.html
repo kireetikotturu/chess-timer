@@ -30,6 +30,12 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+  
+  /* THIS FIXES THE BUG: Prevents text from being highlighted/selected when tapping */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 html, body {
@@ -40,6 +46,14 @@ html, body {
   background: var(--bg);
   color: var(--text);
   touch-action: manipulation; /* Prevents double-tap zoom on mobile */
+}
+
+/* Re-enable text selection ONLY for inputs so you can still type settings */
+input, select {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
 }
 
 /* =========================
@@ -376,9 +390,9 @@ input:focus, select:focus {
 let playerCount = 2;
 let activePlayer = 1;
 
-let isRunning = false;    // Tracks if a game session is currently open
-let hasStarted = false;   // Tracks if the first clock has been tapped to start the countdown
-let isPaused = false;     // Tracks manual pauses
+let isRunning = false;
+let hasStarted = false;
+let isPaused = false;
 
 let lastTime = 0;
 let animationFrameId = null;
@@ -457,7 +471,6 @@ function initGame() {
   playerTimes = [];
   playerDead = [];
   
-  // Reset all logical states
   isRunning = true;
   hasStarted = false;
   isPaused = false;
@@ -470,7 +483,7 @@ function initGame() {
 
   activePlayer = 1;
   document.getElementById(`player1`).classList.add('active');
-  document.getElementById(`player1`).classList.add('waiting'); // Shows "TAP TO START"
+  document.getElementById(`player1`).classList.add('waiting');
   pauseBtn.textContent = '⏸️';
 }
 
@@ -480,8 +493,6 @@ function startGame() {
   centerControls.style.display = 'flex';
   
   initGame();
-  // We do NOT start the requestAnimationFrame loop here.
-  // It waits patiently for the first tap.
 }
 
 function gameLoop() {
@@ -523,17 +534,13 @@ function switchTurn(playerClicked, forced = false) {
   if (!isRunning || (isPaused && hasStarted)) return; 
   if (playerClicked !== activePlayer && !forced) return;
 
-  // FIRST TAP LOGIC
   if (!hasStarted) {
     hasStarted = true;
     lastTime = Date.now();
     document.getElementById(`player${activePlayer}`).classList.remove('waiting');
     
-    // We start the timer loop now
     animationFrameId = requestAnimationFrame(gameLoop);
-    // Notice we do NOT apply increment on the very first tap of the game
   } 
-  // SUBSEQUENT TAPS LOGIC
   else {
     const extraSec = parseInt(document.getElementById('extra-sec').value) || 0;
     const method = document.getElementById('timing-method').value;
@@ -544,7 +551,6 @@ function switchTurn(playerClicked, forced = false) {
     }
   }
 
-  // Visual turn switch
   document.getElementById(`player${activePlayer}`).classList.remove('active');
 
   let next = activePlayer;
@@ -556,7 +562,6 @@ function switchTurn(playerClicked, forced = false) {
   document.getElementById(`player${activePlayer}`).classList.add('active');
 }
 
-// Center Button Event Listeners
 document.getElementById('start-game').addEventListener('click', startGame);
 
 document.getElementById('back-btn').addEventListener('click', () => {
@@ -569,7 +574,7 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 document.getElementById('pause-btn').addEventListener('click', () => {
-  if (!hasStarted) return; // You can't pause a game that hasn't started yet
+  if (!hasStarted) return; 
 
   if (isPaused) {
     isPaused = false;
